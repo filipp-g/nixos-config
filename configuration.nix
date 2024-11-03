@@ -139,11 +139,21 @@
   home-manager.users.fil = { pkgs, ... }: {
     home.packages = [
       pkgs.gnome.gnome-terminal
+      pkgs.gnomeExtensions.dash-to-dock
     ];
     programs = {
       home-manager.enable = true;
       bash.enable = true;
       git.enable = true;
+    };
+    dconf = {
+      enable = true;
+      settings."org/gnome/shell" = {
+        disable-user-extensions = false;
+        enabled-extensions = with pkgs.gnomeExtensions; [
+          dash-to-dock.extensionUuid
+        ];
+      };
     };
 
     # The state version is required and should stay at the version you
