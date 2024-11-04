@@ -4,6 +4,9 @@
 
 { config, pkgs, ... }:
 
+let
+  unstable = import <nixos-unstable> {};
+in
 {
   imports =
     [ # Include the results of the hardware scan.
@@ -40,6 +43,7 @@
   # Enable the GNOME Desktop Environment.
   services.xserver.displayManager.gdm.enable = true;
   services.xserver.desktopManager.gnome.enable = true;
+  services.xserver.excludePackages = with pkgs; [ xterm ];
 
   # Configure keymap in X11
   services.xserver.xkb = {
@@ -75,9 +79,7 @@
     isNormalUser = true;
     description = "fil";
     extraGroups = [ "networkmanager" "wheel" ];
-    packages = with pkgs; [
-    #  thunderbird
-    ];
+    packages = with pkgs; [];
   };
 
   # Install firefox.
@@ -118,32 +120,37 @@
   system.stateVersion = "24.05"; # Did you read the comment?
   
   environment.gnome.excludePackages = (with pkgs; [
-    gnome-photos gnome-tour
+    gnome-photos gnome-tour gnome-console gnome-connections 
+    snapshot yelp
   ]) ++ (with pkgs.gnome; [
-    cheese # webcam tool
-    gnome-music
-    # gedit # text editor
-    # epiphany # web browser
-    geary # email reader
-    # evince # document viewer
-    gnome-characters
-    totem # video player
-    tali # poker game
-    iagno # go game
-    hitori # sudoku game
-    atomix # puzzle game
+    gnome-calendar gnome-characters gnome-clocks gnome-contacts
+    gnome-logs gnome-maps gnome-music gnome-shell-extensions
+    epiphany geary totem simple-scan
   ]);
   
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
   home-manager.users.fil = { pkgs, ... }: {
     home.packages = [
+      pkgs.gnome.dconf-editor
       pkgs.gnome.gnome-terminal
+      pkgs.gnome.gnome-tweaks
+      pkgs.gnome-extension-manager
       pkgs.gnomeExtensions.dash-to-dock
+      pkgs.gnomeExtensions.user-themes
+      pkgs.jetbrains-mono
+      pkgs.yaru-theme
+      
+      unstable.ubuntu-sans
     ];
     programs = {
       home-manager.enable = true;
-      bash.enable = true;
+      bash = {
+        enable = true;
+        shellAliases = {
+          ll = "ls -al";
+        };
+      };
       git.enable = true;
     };
     dconf = {
@@ -152,8 +159,10 @@
         disable-user-extensions = false;
         enabled-extensions = with pkgs.gnomeExtensions; [
           dash-to-dock.extensionUuid
+          user-themes.extensionUuid
         ];
       };
+      settings."org/gnome/shell/extensions/user-theme".name = "Yaru-blue";
     };
 
     # The state version is required and should stay at the version you
