@@ -82,8 +82,13 @@ in
     packages = with pkgs; [];
   };
 
-  # Install firefox.
-  programs.firefox.enable = true;
+  programs = {
+    bash = {
+      promptInit = ''PS1="\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "'';
+    };
+    firefox.enable = true;
+    git.enable = true;
+  };
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
@@ -145,13 +150,6 @@ in
     ];
     programs = {
       home-manager.enable = true;
-      bash = {
-        enable = true;
-        shellAliases = {
-          ll = "ls -al";
-        };
-      };
-      git.enable = true;
     };
     dconf = {
       enable = true;
