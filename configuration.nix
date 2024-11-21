@@ -89,6 +89,12 @@ in
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
+  
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 14d";
+  };
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
@@ -123,10 +129,10 @@ in
   
   environment.gnome.excludePackages = (with pkgs; [
     gnome-photos gnome-tour gnome-connections gnome-console
-    snapshot yelp
+    snapshot yelp   
   ]) ++ (with pkgs.gnome; [
-    gnome-calendar gnome-characters gnome-clocks gnome-contacts
-    gnome-logs gnome-maps gnome-music gnome-shell-extensions
+    gnome-calendar gnome-characters gnome-clocks gnome-contacts gnome-logs
+    gnome-maps gnome-music gnome-shell-extensions
     epiphany geary totem simple-scan
   ]);
   
