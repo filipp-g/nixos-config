@@ -83,9 +83,6 @@ in
   };
 
   programs = {
-    bash = {
-      promptInit = ''PS1="\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "'';
-    };
     firefox.enable = true;
     git.enable = true;
   };
@@ -125,7 +122,7 @@ in
   system.stateVersion = "24.05"; # Did you read the comment?
   
   environment.gnome.excludePackages = (with pkgs; [
-    gnome-photos gnome-tour gnome-console gnome-connections 
+    gnome-photos gnome-tour gnome-connections gnome-console
     snapshot yelp
   ]) ++ (with pkgs.gnome; [
     gnome-calendar gnome-characters gnome-clocks gnome-contacts
@@ -141,12 +138,18 @@ in
       pkgs.gnome.gnome-terminal
       pkgs.gnome.gnome-tweaks
       pkgs.gnome-extension-manager
-      pkgs.gnomeExtensions.dash-to-dock
-      pkgs.gnomeExtensions.user-themes
-      pkgs.jetbrains-mono
       pkgs.yaru-theme
-      
+      pkgs.jetbrains-mono
+      pkgs.mate.mate-terminal
       unstable.ubuntu-sans
+      
+      pkgs.gnomeExtensions.user-themes
+      unstable.gnomeExtensions.astra-monitor
+      unstable.gnomeExtensions.caffeine
+      unstable.gnomeExtensions.dash-to-dock
+      unstable.gnomeExtensions.reboottouefi
+      
+      pkgs.google-chrome
     ];
     programs = {
       home-manager.enable = true;
@@ -156,8 +159,11 @@ in
       settings."org/gnome/shell" = {
         disable-user-extensions = false;
         enabled-extensions = with pkgs.gnomeExtensions; [
-          dash-to-dock.extensionUuid
           user-themes.extensionUuid
+          astra-monitor.extensionUuid
+          caffeine.extensionUuid
+          dash-to-dock.extensionUuid
+          reboottouefi.extensionUuid
         ];
       };
       settings."org/gnome/shell/extensions/user-theme".name = "Yaru-blue";
