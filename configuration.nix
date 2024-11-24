@@ -5,7 +5,7 @@
 { config, pkgs, ... }:
 
 let
-  unstable = import <nixos-unstable> {};
+  unstable = import <nixos-unstable> { config.allowUnfree = true; };
 in
 {
   imports =
@@ -90,15 +90,28 @@ in
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
   
-  nix.gc = {
-    automatic = true;
-    dates = "weekly";
-    options = "--delete-older-than 14d";
+  nix = {
+    gc = {
+      automatic = true;
+      dates = "weekly";
+      options = "--delete-older-than +10";
+    };
+  };
+  
+  virtualisation.containers.enable = true;
+  virtualisation = {
+    podman = {
+      enable = true;
+      dockerCompat = true;
+      defaultNetwork.settings.dns_enabled = true;
+    };
   };
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
-  environment.systemPackages = with pkgs; [];
+  environment.systemPackages = with pkgs; [
+    docker-compose podman-tui
+  ];
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
@@ -156,6 +169,9 @@ in
       unstable.gnomeExtensions.reboottouefi
       
       pkgs.google-chrome
+      unstable.code-cursor
+      
+      pkgs.awscli2
     ];
     programs = {
       home-manager.enable = true;
