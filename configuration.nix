@@ -85,18 +85,14 @@ in
   programs = {
     firefox.enable = true;
     git.enable = true;
+    java = {
+      enable = true;
+      package = pkgs.jdk17;
+    };
   };
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
-  
-  nix = {
-    gc = {
-      automatic = true;
-      dates = "weekly";
-      options = "--delete-older-than +10";
-    };
-  };
   
   virtualisation.containers.enable = true;
   virtualisation = {
@@ -109,9 +105,52 @@ in
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
-  environment.systemPackages = with pkgs; [
-    docker-compose podman-tui
-  ];
+  environment.systemPackages = (with pkgs; [
+    gnome.dconf-editor
+    gnome.gnome-terminal
+    gnome.gnome-tweaks
+    gnome-extension-manager
+    yaru-theme
+    jetbrains-mono
+    
+    mate.mate-terminal
+    gnomeExtensions.user-themes
+    
+    google-chrome
+    vscode-fhs
+    
+    awscli2
+    docker-compose
+    podman-tui
+    nixd
+  ]) ++ (with unstable; [
+    ubuntu-sans
+    
+    gnomeExtensions.astra-monitor
+    gnomeExtensions.caffeine
+    gnomeExtensions.dash-to-dock
+    gnomeExtensions.reboottouefi
+
+    code-cursor
+    qbittorrent
+  ]);
+
+  environment.gnome.excludePackages = (with pkgs; [
+    gnome-photos gnome-tour gnome-connections gnome-console
+    snapshot yelp   
+  ]) ++ (with pkgs.gnome; [
+    gnome-calendar gnome-characters gnome-clocks gnome-contacts gnome-logs
+    gnome-maps gnome-music gnome-shell-extensions
+    epiphany geary totem simple-scan
+  ]);
+
+  nix = {
+    gc = {
+      automatic = true;
+      dates = "weekly";
+      options = "--delete-older-than +10";
+    };
+  };
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
@@ -140,55 +179,12 @@ in
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "24.05"; # Did you read the comment?
   
-  environment.gnome.excludePackages = (with pkgs; [
-    gnome-photos gnome-tour gnome-connections gnome-console
-    snapshot yelp   
-  ]) ++ (with pkgs.gnome; [
-    gnome-calendar gnome-characters gnome-clocks gnome-contacts gnome-logs
-    gnome-maps gnome-music gnome-shell-extensions
-    epiphany geary totem simple-scan
-  ]);
-  
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
   home-manager.users.fil = { pkgs, ... }: {
-    home.packages = [
-      pkgs.gnome.dconf-editor
-      pkgs.gnome.gnome-terminal
-      pkgs.gnome.gnome-tweaks
-      pkgs.gnome-extension-manager
-      pkgs.yaru-theme
-      pkgs.jetbrains-mono
-      pkgs.mate.mate-terminal
-      unstable.ubuntu-sans
-      
-      pkgs.gnomeExtensions.user-themes
-      unstable.gnomeExtensions.astra-monitor
-      unstable.gnomeExtensions.caffeine
-      unstable.gnomeExtensions.dash-to-dock
-      unstable.gnomeExtensions.reboottouefi
-      
-      pkgs.google-chrome
-      unstable.code-cursor
-      
-      pkgs.awscli2
-    ];
+    home.packages = [];
     programs = {
       home-manager.enable = true;
-    };
-    dconf = {
-      enable = true;
-      settings."org/gnome/shell" = {
-        disable-user-extensions = false;
-        enabled-extensions = with pkgs.gnomeExtensions; [
-          user-themes.extensionUuid
-          astra-monitor.extensionUuid
-          caffeine.extensionUuid
-          dash-to-dock.extensionUuid
-          reboottouefi.extensionUuid
-        ];
-      };
-      settings."org/gnome/shell/extensions/user-theme".name = "Yaru-blue";
     };
 
     # The state version is required and should stay at the version you
