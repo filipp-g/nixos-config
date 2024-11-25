@@ -6,6 +6,9 @@
 
 let
   unstable = import <nixos-unstable> { config.allowUnfree = true; };
+  
+  monitorsXmlContent = builtins.readFile /home/fil/.config/monitors.xml;
+  monitorsConfig = pkgs.writeText "gdm_monitors.xml" monitorsXmlContent;
 in
 {
   imports =
@@ -15,9 +18,8 @@ in
     ];
 
   # Bootloader.
-  boot.loader.grub.enable = true;
-  boot.loader.grub.device = "/dev/vda";
-  boot.loader.grub.useOSProber = true;
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
   
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
@@ -44,6 +46,10 @@ in
   services.xserver.displayManager.gdm.enable = true;
   services.xserver.desktopManager.gnome.enable = true;
   services.xserver.excludePackages = with pkgs; [ xterm ];
+  
+  systemd.tmpfiles.rules = [
+    "L+ /run/gdm/.config/monitors.xml - - - - ${monitorsConfig}"
+  ];
 
   # Configure keymap in X11
   services.xserver.xkb = {
@@ -113,9 +119,9 @@ in
     yaru-theme
     jetbrains-mono
     
-    mate.mate-terminal
     gnomeExtensions.user-themes
     
+    dropbox
     google-chrome
     vscode-fhs
     
@@ -132,6 +138,7 @@ in
     gnomeExtensions.reboottouefi
 
     code-cursor
+    obsidian
     qbittorrent
   ]);
 
