@@ -27,15 +27,31 @@ in
     "L+ /run/gdm/.config/monitors.xml - - - - ${monitorsConfig}"
   ];
 
+  nixpkgs.config.allowUnfree = true;
+
+  nix = {
+    gc = {
+      automatic = true;
+      dates = "weekly";
+      options = "--delete-older-than +10";
+    };
+    settings = {
+      substituters = [
+        "https://cuda-maintainers.cachix.org"
+      ];
+      trusted-public-keys = [
+        "cuda-maintainers.cachix.org-1:0dq3bujKpuEPMCX6U4WylrUDZ9JyUG0VpVZa7CNfq5E="
+      ];
+    };
+  };
+
   networking = {
     hostName = "nixos";
     networkmanager.enable = true;
     firewall.allowedTCPPorts = [ 32400 ];
   };
 
-  # Set your time zone.
   time.timeZone = "America/Edmonton";
-  # Select internationalisation properties.
   i18n.defaultLocale = "en_CA.UTF-8";
 
   services = {
@@ -43,6 +59,7 @@ in
     printing.enable = false;
     xserver = {
       enable = true;
+      videoDrivers = [ "nvidia" ];
       displayManager.gdm.enable = true;
       desktopManager.gnome.enable = true;
       excludePackages = with pkgs; [ xterm ];
@@ -53,8 +70,30 @@ in
     plex.enable = true;
   };
 
+  hardware = {
+    pulseaudio.enable = false;
+    nvidia = {
+      modesetting.enable = true;
+      powerManagement.enable = false;
+      powerManagement.finegrained = false;
+      prime = {
+        offload.enable = true;
+        offload.enableOffloadCmd = true;
+        amdgpuBusId = "PCI:12:0:0";
+        nvidiaBusId = "PCI:1:0:0";
+      };
+      package = config.boot.kernelPackages.nvidiaPackages.mkDriver {
+        version = "550.127.05";
+        sha256_64bit = "sha256-04TzT10qiWvXU20962ptlz2AlKOtSFocLuO/UZIIauk=";
+        sha256_aarch64 = "sha256-3wsGqJvDf8io4qFSqbpafeHHBjbasK5i/W+U6TeEeBY=";
+        openSha256 = "sha256-r0zlWPIuc6suaAk39pzu/tp0M++kY2qF8jklKePhZQQ=";
+        settingsSha256 = "sha256-cUSOTsueqkqYq3Z4/KEnLpTJAryML4Tk7jco/ONsvyg=";
+        persistencedSha256 = "sha256-8nowXrL6CRB3/YcoG1iWeD4OCYbsYKOOPE374qaa4sY=";
+      };
+    };
+  };
+
   # Enable sound with pipewire.
-  hardware.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
     enable = true;
@@ -85,9 +124,6 @@ in
       package = pkgs.jdk17;
     };
   };
-
-  # Allow unfree packages
-  nixpkgs.config.allowUnfree = true;
   
   virtualisation.containers.enable = true;
   virtualisation = {
@@ -109,6 +145,7 @@ in
     jetbrains-mono
     
     gnomeExtensions.user-themes
+    cudaPackages.cudatoolkit
     
     dropbox
     google-chrome
@@ -143,14 +180,6 @@ in
     gnome-maps gnome-music gnome-shell-extensions
     epiphany geary totem simple-scan
   ]);
-
-  nix = {
-    gc = {
-      automatic = true;
-      dates = "weekly";
-      options = "--delete-older-than +10";
-    };
-  };
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
