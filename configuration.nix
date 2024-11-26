@@ -17,11 +17,13 @@ in
       <home-manager/nixos>
     ];
 
-  # Bootloader.
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-  
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+  boot = {
+    loader = {
+      systemd-boot.enable = true;
+      efi.canTouchEfiVariables = true;  
+    };
+    kernelPackages = pkgs.linuxPackages_latest;
+  };
 
   systemd.tmpfiles.rules = [
     "L+ /run/gdm/.config/monitors.xml - - - - ${monitorsConfig}"
@@ -36,6 +38,7 @@ in
       options = "--delete-older-than +10";
     };
     settings = {
+      auto-optimise-store = true;
       substituters = [
         "https://cuda-maintainers.cachix.org"
       ];
@@ -113,7 +116,7 @@ in
     isNormalUser = true;
     description = "fil";
     extraGroups = [ "networkmanager" "wheel" ];
-    packages = with pkgs; [];
+    packages = [];
   };
 
   programs = {
@@ -142,10 +145,10 @@ in
     gnome.gnome-tweaks
     gnome-extension-manager
     yaru-theme
-    jetbrains-mono
-    
+
     gnomeExtensions.user-themes
     cudaPackages.cudatoolkit
+    openssl_3_3
     
     dropbox
     google-chrome
@@ -153,15 +156,17 @@ in
     mission-center
     
     awscli2
+    git-remote-codecommit
     docker-compose
-    podman-tui
     nixd
+    nodejs_20
+    yarn
+    prisma-engines
   ]) ++ (with unstable; [
-    ubuntu-sans
-    
     gnomeExtensions.astra-monitor
     gnomeExtensions.caffeine
     gnomeExtensions.dash-to-dock
+    gnomeExtensions.ddterm
     gnomeExtensions.freon
     gnomeExtensions.grand-theft-focus
     gnomeExtensions.reboottouefi
@@ -169,7 +174,14 @@ in
 
     code-cursor
     obsidian
+    podman-desktop
     qbittorrent
+  ]);
+
+  fonts.packages = (with pkgs; [
+    jetbrains-mono
+  ]) ++ (with unstable; [
+    ubuntu-sans
   ]);
 
   environment.gnome.excludePackages = (with pkgs; [
@@ -191,7 +203,7 @@ in
   
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
-  home-manager.users.fil = { pkgs, ... }: {
+  home-manager.users.fil = { ... }: {
     home.packages = [];
     programs = {
       home-manager.enable = true;
