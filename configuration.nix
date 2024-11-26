@@ -23,6 +23,14 @@ in
       efi.canTouchEfiVariables = true;  
     };
     kernelPackages = pkgs.linuxPackages_latest;
+    kernel.sysctl = {
+      "vm.swappiness" = 10;
+    };
+  };
+
+  zramSwap = {
+    enable = true;
+    memoryPercent = 10;
   };
 
   systemd.tmpfiles.rules = [
@@ -58,6 +66,7 @@ in
   i18n.defaultLocale = "en_CA.UTF-8";
 
   services = {
+    fstrim.enable = true;
     avahi.enable = false;
     printing.enable = false;
     xserver = {
@@ -70,6 +79,7 @@ in
       xkb.layout = "us";
       xkb.variant = "";
     };
+    flatpak.enable = true;
     plex.enable = true;
   };
 
@@ -126,6 +136,8 @@ in
       enable = true;
       package = pkgs.jdk17;
     };
+    steam.enable = true;
+    gamemode.enable = true;
   };
   
   virtualisation.containers.enable = true;
