@@ -14,7 +14,6 @@ in
   imports =
     [
       ./hardware-configuration.nix
-      <home-manager/nixos>
     ];
 
   boot = {
@@ -30,7 +29,7 @@ in
 
   zramSwap = {
     enable = true;
-    memoryPercent = 10;
+    memoryPercent = 5;
   };
 
   systemd.tmpfiles.rules = [
@@ -86,6 +85,7 @@ in
   hardware = {
     pulseaudio.enable = false;
     nvidia = {
+      open = true;
       modesetting.enable = true;
       powerManagement.enable = false;
       powerManagement.finegrained = false;
@@ -94,14 +94,6 @@ in
         offload.enableOffloadCmd = true;
         amdgpuBusId = "PCI:12:0:0";
         nvidiaBusId = "PCI:1:0:0";
-      };
-      package = config.boot.kernelPackages.nvidiaPackages.mkDriver {
-        version = "550.127.05";
-        sha256_64bit = "sha256-04TzT10qiWvXU20962ptlz2AlKOtSFocLuO/UZIIauk=";
-        sha256_aarch64 = "sha256-3wsGqJvDf8io4qFSqbpafeHHBjbasK5i/W+U6TeEeBY=";
-        openSha256 = "sha256-r0zlWPIuc6suaAk39pzu/tp0M++kY2qF8jklKePhZQQ=";
-        settingsSha256 = "sha256-cUSOTsueqkqYq3Z4/KEnLpTJAryML4Tk7jco/ONsvyg=";
-        persistencedSha256 = "sha256-8nowXrL6CRB3/YcoG1iWeD4OCYbsYKOOPE374qaa4sY=";
       };
     };
   };
@@ -138,6 +130,10 @@ in
     };
     steam.enable = true;
     gamemode.enable = true;
+    nautilus-open-any-terminal = {
+      enable = true;
+      terminal = "ptyxis";
+    };
   };
   
   virtualisation.containers.enable = true;
@@ -152,11 +148,11 @@ in
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = (with pkgs; [
-    gnome.dconf-editor
-    gnome.gnome-terminal
-    gnome.gnome-tweaks
+    dconf-editor
+    gnome-tweaks
     gnome-extension-manager
     yaru-theme
+    ptyxis
 
     gnomeExtensions.user-themes
     cudaPackages.cudatoolkit
@@ -164,8 +160,8 @@ in
     
     dropbox
     google-chrome
-    vscode-fhs
     mission-center
+    vscode-fhs
     
     awscli2
     git-remote-codecommit
@@ -188,22 +184,21 @@ in
     obsidian
     podman-desktop
     qbittorrent
+    lutris
+    mangohud
   ]);
 
-  fonts.packages = (with pkgs; [
+  fonts.packages = with pkgs; [
     jetbrains-mono
-  ]) ++ (with unstable; [
     ubuntu-sans
-  ]);
+  ];
 
-  environment.gnome.excludePackages = (with pkgs; [
-    gnome-photos gnome-tour gnome-connections gnome-console
-    snapshot yelp   
-  ]) ++ (with pkgs.gnome; [
-    gnome-calendar gnome-characters gnome-clocks gnome-contacts gnome-logs
-    gnome-maps gnome-music gnome-shell-extensions
-    epiphany geary totem simple-scan
-  ]);
+  environment.gnome.excludePackages = with pkgs; [
+    gnome-calendar gnome-characters gnome-clocks gnome-console gnome-contacts
+    gnome-logs gnome-maps gnome-music gnome-photos gnome-tour gnome-connections
+    gnome-shell-extensions
+    snapshot yelp epiphany geary totem simple-scan
+  ];
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
@@ -211,19 +206,6 @@ in
   # this value at the release version of the first install of this system.
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "24.05"; # Did you read the comment?
-  
-  home-manager.useGlobalPkgs = true;
-  home-manager.useUserPackages = true;
-  home-manager.users.fil = { ... }: {
-    home.packages = [];
-    programs = {
-      home-manager.enable = true;
-    };
-
-    # The state version is required and should stay at the version you
-    # originally installed.
-    home.stateVersion = "24.05";
-  };
+  system.stateVersion = "24.11"; # Did you read the comment?
 
 }
