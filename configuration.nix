@@ -19,11 +19,22 @@ in
   boot = {
     loader = {
       systemd-boot.enable = true;
-      efi.canTouchEfiVariables = true;  
+      efi.canTouchEfiVariables = true;
     };
     kernelPackages = pkgs.linuxPackages_latest;
     kernel.sysctl = {
       "vm.swappiness" = 10;
+      "kernel.nmi_watchdog" = 0;
+    };
+  };
+
+  security = {
+    rtkit.enable = true;
+    protectKernelImage = true;
+    lockKernelModules = true;
+    pam.services.login.failDelay = {
+      enable = true;
+      delay = 8000000;
     };
   };
 
@@ -85,7 +96,7 @@ in
   hardware = {
     pulseaudio.enable = false;
     nvidia = {
-      open = true;
+      open = false;
       modesetting.enable = true;
       powerManagement.enable = false;
       powerManagement.finegrained = false;
@@ -99,7 +110,6 @@ in
   };
 
   # Enable sound with pipewire.
-  security.rtkit.enable = true;
   services.pipewire = {
     enable = true;
     alsa.enable = true;
@@ -145,16 +155,10 @@ in
     };
   };
 
-  # List packages installed in system profile. To search, run:
-  # $ nix search wget
   environment.systemPackages = (with pkgs; [
-    dconf-editor
-    gnome-tweaks
-    gnome-extension-manager
-    yaru-theme
-    ptyxis
+    gnome-tweaks gnome-extension-manager gnomeExtensions.user-themes
+    dconf-editor xdg-utils yaru-theme ptyxis
 
-    gnomeExtensions.user-themes
     cudaPackages.cudatoolkit
     openssl_3_3
     
@@ -163,41 +167,30 @@ in
     mission-center
     vscode-fhs
     
-    awscli2
-    git-remote-codecommit
-    docker-compose
+    awscli2 git-remote-codecommit docker-compose
+    nodejs_20 prisma-engines yarn
     nixd
-    nodejs_20
-    yarn
-    prisma-engines
   ]) ++ (with unstable; [
-    gnomeExtensions.astra-monitor
-    gnomeExtensions.caffeine
-    gnomeExtensions.dash-to-dock
-    gnomeExtensions.ddterm
-    gnomeExtensions.freon
-    gnomeExtensions.grand-theft-focus
-    gnomeExtensions.reboottouefi
-    gnomeExtensions.user-stylesheet-font
-
     code-cursor
-    obsidian
+
     podman-desktop
+    obsidian
     qbittorrent
     lutris
     mangohud
+  ]) ++ (with unstable.gnomeExtensions; [
+    astra-monitor caffeine dash-to-dock ddterm freon
+    grand-theft-focus reboottouefi user-stylesheet-font
   ]);
 
   fonts.packages = with pkgs; [
-    jetbrains-mono
-    ubuntu-sans
+    jetbrains-mono ubuntu-sans
   ];
 
   environment.gnome.excludePackages = with pkgs; [
-    gnome-calendar gnome-characters gnome-clocks gnome-console gnome-contacts
-    gnome-logs gnome-maps gnome-music gnome-photos gnome-tour gnome-connections
-    gnome-shell-extensions
-    snapshot yelp epiphany geary totem simple-scan
+    gnome-calendar gnome-characters gnome-clocks gnome-console gnome-connections
+    gnome-contacts gnome-logs gnome-maps gnome-music gnome-photos gnome-tour
+    gnome-shell-extensions snapshot yelp epiphany geary totem simple-scan
   ];
 
   # This value determines the NixOS release from which the default
