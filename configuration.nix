@@ -2,7 +2,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
 let
   unstable = import <nixos-unstable> { config.allowUnfree = true; };
@@ -31,7 +31,6 @@ in
   security = {
     rtkit.enable = true;
     protectKernelImage = true;
-    lockKernelModules = true;
     pam.services.login.failDelay = {
       enable = true;
       delay = 8000000;
@@ -43,9 +42,34 @@ in
     memoryPercent = 5;
   };
 
+  system.activationScripts.report-changes = ''
+    PATH=$PATH:${lib.makeBinPath [ pkgs.nvd pkgs.nix ]}
+    nvd diff $(ls -dv /nix/var/nix/profiles/system-*-link | tail -2)
+  '';
+
   systemd.tmpfiles.rules = [
     "L+ /run/gdm/.config/monitors.xml - - - - ${monitorsConfig}"
   ];
+
+  systemd.services.plex.serviceConfig = let
+    pidFile = "${config.services.plex.dataDir}/Plex Media Server/plexmediaserver.pid";
+  in {
+    KillSignal = lib.mkForce "SIGKILL";
+    Restart = lib.mkForce "no";
+    TimeoutStopSec = 10;
+    ExecStop = pkgs.writeShellScript "plex-stop" ''
+      ${pkgs.procps}/bin/pkill --signal 15 --pidfile "${pidFile}"
+
+      # Wait until plex service has been shutdown
+      # by checking if the PID file is gone
+      while [ -e "${pidFile}" ]; do
+        sleep 0.1
+      done
+
+      ${pkgs.coreutils}/bin/echo "Plex shutdown successful"
+    '';
+    PIDFile = lib.mkForce "";
+  };
 
   nixpkgs.config.allowUnfree = true;
 
@@ -75,22 +99,10 @@ in
   time.timeZone = "America/Edmonton";
   i18n.defaultLocale = "en_CA.UTF-8";
 
-  services = {
-    fstrim.enable = true;
-    avahi.enable = false;
-    printing.enable = false;
-    xserver = {
-      enable = true;
-      videoDrivers = [ "nvidia" ];
-      displayManager.gdm.enable = true;
-      desktopManager.gnome.enable = true;
-      excludePackages = with pkgs; [ xterm ];
-      # keymap
-      xkb.layout = "us";
-      xkb.variant = "";
-    };
-    flatpak.enable = true;
-    plex.enable = true;
+  users.users.fil = {
+    isNormalUser = true;
+    description = "fil";
+    extraGroups = [ "networkmanager" "wheel" ];
   };
 
   hardware = {
@@ -109,26 +121,25 @@ in
     };
   };
 
-  # Enable sound with pipewire.
-  services.pipewire = {
-    enable = true;
-    alsa.enable = true;
-    alsa.support32Bit = true;
-    pulse.enable = true;
-    # If you want to use JACK applications, uncomment this
-    #jack.enable = true;
-
-    # use the example session manager (no others are packaged yet so this is enabled by default,
-    # no need to redefine it in your config for now)
-    #media-session.enable = true;
-  };
-
-  # Define a user account. Don't forget to set a password with ‘passwd’.
-  users.users.fil = {
-    isNormalUser = true;
-    description = "fil";
-    extraGroups = [ "networkmanager" "wheel" ];
-    packages = [];
+  services = {
+    fstrim.enable = true;
+    avahi.enable = false;
+    printing.enable = false;
+    xserver = {
+      enable = true;
+      videoDrivers = [ "nvidia" ];
+      displayManager.gdm.enable = true;
+      desktopManager.gnome.enable = true;
+      excludePackages = with pkgs; [ xterm ];
+    };
+    pipewire = {
+      enable = true;
+      alsa.enable = true;
+      alsa.support32Bit = true;
+      pulse.enable = true;
+    };
+    flatpak.enable = true;
+    plex.enable = true;
   };
 
   programs = {
@@ -159,28 +170,26 @@ in
     gnome-tweaks gnome-extension-manager gnomeExtensions.user-themes
     dconf-editor xdg-utils yaru-theme ptyxis
 
-    cudaPackages.cudatoolkit
-    openssl_3_3
-    
     dropbox
     google-chrome
     mission-center
     vscode-fhs
     
+    openssl_3_3
+    cudaPackages.cudatoolkit
     awscli2 git-remote-codecommit docker-compose
-    nodejs_20 prisma-engines yarn
+    nodejs_20 prisma-engines yarn pnpm
     nixd
   ]) ++ (with unstable; [
     code-cursor
-
-    podman-desktop
     obsidian
+    podman-desktop
     qbittorrent
     lutris
     mangohud
   ]) ++ (with unstable.gnomeExtensions; [
-    astra-monitor caffeine dash-to-dock ddterm freon
-    grand-theft-focus reboottouefi user-stylesheet-font
+    astra-monitor caffeine dash-to-dock ddterm
+    grand-theft-focus reboottouefi freon
   ]);
 
   fonts.packages = with pkgs; [
