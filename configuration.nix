@@ -77,7 +77,7 @@ in
     gc = {
       automatic = true;
       dates = "weekly";
-      options = "--delete-older-than +10";
+      options = "--delete-older-than 7d";
     };
     settings = {
       auto-optimise-store = true;
@@ -173,20 +173,24 @@ in
     dropbox
     google-chrome
     mission-center
-    vscode-fhs
+    qbittorrent
+    podman-desktop
+    obsidian
+    mangohud
     
+    gcc12
     openssl_3_3
     cudaPackages.cudatoolkit
-    awscli2 git-remote-codecommit docker-compose
-    nodejs_20 prisma-engines yarn pnpm
-    nixd
+
+    awscli2
+    git-remote-codecommit
+    docker-compose
+    nodejs_20 yarn
+    prisma-engines
   ]) ++ (with unstable; [
+    vscode-fhs
     code-cursor
-    obsidian
-    podman-desktop
-    qbittorrent
     lutris
-    mangohud
   ]) ++ (with unstable.gnomeExtensions; [
     astra-monitor caffeine dash-to-dock ddterm
     grand-theft-focus reboottouefi freon
