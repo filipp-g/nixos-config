@@ -42,11 +42,6 @@ in
     memoryPercent = 5;
   };
 
-  system.activationScripts.report-changes = ''
-    PATH=$PATH:${lib.makeBinPath [ pkgs.nvd pkgs.nix ]}
-    nvd diff $(ls -dv /nix/var/nix/profiles/system-*-link | tail -2)
-  '';
-
   systemd.tmpfiles.rules = [
     "L+ /run/gdm/.config/monitors.xml - - - - ${monitorsConfig}"
   ];
@@ -168,7 +163,7 @@ in
 
   environment.systemPackages = (with pkgs; [
     gnome-tweaks gnome-extension-manager gnomeExtensions.user-themes
-    dconf-editor xdg-utils yaru-theme ptyxis
+    dconf-editor xdg-utils yaru-theme ptyxis nvd
 
     dropbox
     google-chrome
@@ -177,8 +172,7 @@ in
     podman-desktop
     obsidian
     mangohud
-    
-    gcc12
+
     openssl_3_3
     cudaPackages.cudatoolkit
 
@@ -190,7 +184,6 @@ in
   ]) ++ (with unstable; [
     vscode-fhs
     code-cursor
-    lutris
   ]) ++ (with unstable.gnomeExtensions; [
     astra-monitor caffeine dash-to-dock ddterm
     grand-theft-focus reboottouefi freon
