@@ -88,7 +88,19 @@ in
   networking = {
     hostName = "nix";
     networkmanager.enable = true;
-    firewall.allowedTCPPorts = [ 32400 ];
+    firewall = {
+      allowedTCPPorts = [ 32400 ];
+      logReversePathDrops = true;
+      # wireguard trips rpfilter up
+      extraCommands = ''
+        ip46tables -t mangle -I nixos-fw-rpfilter -p udp -m udp --sport 51820 -j RETURN
+        ip46tables -t mangle -I nixos-fw-rpfilter -p udp -m udp --dport 51820 -j RETURN
+      '';
+      extraStopCommands = ''
+        ip46tables -t mangle -D nixos-fw-rpfilter -p udp -m udp --sport 51820 -j RETURN || true
+        ip46tables -t mangle -D nixos-fw-rpfilter -p udp -m udp --dport 51820 -j RETURN || true
+      '';
+    };
   };
 
   time.timeZone = "America/Edmonton";
@@ -140,6 +152,7 @@ in
       alsa.support32Bit = true;
       pulse.enable = true;
     };
+    flatpak.enable = true;
     plex.enable = true;
   };
 
@@ -150,16 +163,15 @@ in
       enable = true;
       package = pkgs.jdk;
     };
-    steam.enable = true;
     gamemode.enable = true;
     nautilus-open-any-terminal = {
       enable = true;
       terminal = "ptyxis";
     };
   };
-  
-  virtualisation.containers.enable = true;
+
   virtualisation = {
+    containers.enable = true;
     podman = {
       enable = true;
       dockerCompat = true;
@@ -168,25 +180,17 @@ in
   };
 
   environment.systemPackages = (with pkgs; [
-    gnome-tweaks gnome-extension-manager gnomeExtensions.user-themes
+    gnome-tweaks gnome-extension-manager
     dconf-editor xdg-utils yaru-theme ptyxis nvd
 
-    dropbox
-    google-chrome
-    mission-center
-    qbittorrent
-    podman-desktop
-    obsidian
-    bottles
-    mangohud
+    dropbox obsidian mission-center
+    google-chrome qbittorrent
 
     openssl_3_3
     cudaPackages.cudatoolkit
 
-    awscli2
-    docker-compose
-    nodejs_20 yarn
-    prisma-engines
+    awscli2 docker-compose
+    nodejs_20 yarn prisma-engines
   ]) ++ (with unstable; [
     vscode-fhs
   ]) ++ (with unstable.gnomeExtensions; [
@@ -194,8 +198,14 @@ in
   ]);
 
   fonts.packages = with pkgs; [
-    jetbrains-mono ubuntu-sans
+    jetbrains-mono ubuntu-sans ubuntu-classic
   ];
+
+  xdg.portal = {
+    enable = true;
+    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+    xdgOpenUsePortal = true;
+  };
 
   environment.gnome.excludePackages = with pkgs; [
     gnome-calendar gnome-characters gnome-clocks gnome-console gnome-connections
