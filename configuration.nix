@@ -86,7 +86,7 @@ in
   };
 
   networking = {
-    hostName = "nixos";
+    hostName = "nix";
     networkmanager.enable = true;
     firewall.allowedTCPPorts = [ 32400 ];
   };
@@ -113,6 +113,13 @@ in
         amdgpuBusId = "PCI:12:0:0";
         nvidiaBusId = "PCI:1:0:0";
       };
+      package = config.boot.kernelPackages.nvidiaPackages.mkDriver {
+        version = "570.86.16"; # use new 570 drivers
+        sha256_64bit = "sha256-RWPqS7ZUJH9JEAWlfHLGdqrNlavhaR1xMyzs8lJhy9U=";
+        openSha256 = "sha256-DuVNA63+pJ8IB7Tw2gM4HbwlOh1bcDg2AN2mbEU9VPE=";
+        settingsSha256 = "sha256-9rtqh64TyhDF5fFAYiWl3oDHzKJqyOW3abpcf2iNRT8=";
+        usePersistenced = false;
+      };
     };
   };
 
@@ -133,7 +140,6 @@ in
       alsa.support32Bit = true;
       pulse.enable = true;
     };
-    flatpak.enable = true;
     plex.enable = true;
   };
 
@@ -142,7 +148,7 @@ in
     git.enable = true;
     java = {
       enable = true;
-      package = pkgs.jdk17;
+      package = pkgs.jdk;
     };
     steam.enable = true;
     gamemode.enable = true;
@@ -171,22 +177,20 @@ in
     qbittorrent
     podman-desktop
     obsidian
+    bottles
     mangohud
 
     openssl_3_3
     cudaPackages.cudatoolkit
 
     awscli2
-    git-remote-codecommit
     docker-compose
     nodejs_20 yarn
     prisma-engines
   ]) ++ (with unstable; [
     vscode-fhs
-    code-cursor
   ]) ++ (with unstable.gnomeExtensions; [
-    astra-monitor caffeine dash-to-dock ddterm
-    grand-theft-focus reboottouefi freon
+    ddterm freon
   ]);
 
   fonts.packages = with pkgs; [
