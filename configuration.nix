@@ -26,6 +26,7 @@ in
       "vm.swappiness" = 10;
       "kernel.nmi_watchdog" = 0;
     };
+    initrd.kernelModules = [ "amdgpu" ];
   };
 
   security = {
@@ -126,10 +127,10 @@ in
         nvidiaBusId = "PCI:1:0:0";
       };
       package = config.boot.kernelPackages.nvidiaPackages.mkDriver {
-        version = "570.86.16"; # use new 570 drivers
-        sha256_64bit = "sha256-RWPqS7ZUJH9JEAWlfHLGdqrNlavhaR1xMyzs8lJhy9U=";
-        openSha256 = "sha256-DuVNA63+pJ8IB7Tw2gM4HbwlOh1bcDg2AN2mbEU9VPE=";
-        settingsSha256 = "sha256-9rtqh64TyhDF5fFAYiWl3oDHzKJqyOW3abpcf2iNRT8=";
+        version = "570.144";
+        sha256_64bit = "sha256-wLjX7PLiC4N2dnS6uP7k0TI9xVWAJ02Ok0Y16JVfO+Y=";
+        openSha256 = "sha256-PATw6u6JjybD2OodqbKrvKdkkCFQPMNPjrVYnAZhK/E=";
+        settingsSha256 = "sha256-VcCa3P/v3tDRzDgaY+hLrQSwswvNhsm93anmOhUymvM=";
         usePersistenced = false;
       };
     };
@@ -141,7 +142,7 @@ in
     printing.enable = false;
     xserver = {
       enable = true;
-      videoDrivers = [ "nvidia" ];
+      videoDrivers = [ "amdgpu" "nvidia" ];
       displayManager.gdm.enable = true;
       desktopManager.gnome.enable = true;
       excludePackages = with pkgs; [ xterm ];
@@ -157,7 +158,6 @@ in
   };
 
   programs = {
-    firefox.enable = true;
     git.enable = true;
     java = {
       enable = true;
@@ -181,24 +181,24 @@ in
 
   environment.systemPackages = (with pkgs; [
     gnome-tweaks gnome-extension-manager
-    dconf-editor xdg-utils yaru-theme ptyxis nvd
+    dconf-editor xdg-utils ptyxis nvd
 
-    dropbox obsidian mission-center
-    google-chrome qbittorrent
+    brave
+    dropbox
+    qbittorrent
 
+    docker-compose nodejs_20 yarn
     openssl_3_3
     cudaPackages.cudatoolkit
-
-    awscli2 docker-compose
-    nodejs_20 yarn prisma-engines
   ]) ++ (with unstable; [
     vscode-fhs
+    awscli2 prisma-engines
   ]) ++ (with unstable.gnomeExtensions; [
     ddterm freon
   ]);
 
   fonts.packages = with pkgs; [
-    jetbrains-mono ubuntu-sans ubuntu-classic
+    ubuntu-sans ubuntu-classic
   ];
 
   xdg.portal = {
