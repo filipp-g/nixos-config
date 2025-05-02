@@ -47,25 +47,25 @@ in
     "L+ /run/gdm/.config/monitors.xml - - - - ${monitorsConfig}"
   ];
 
-  systemd.services.plex.serviceConfig = let
-    pidFile = "${config.services.plex.dataDir}/Plex Media Server/plexmediaserver.pid";
-  in {
-    KillSignal = lib.mkForce "SIGKILL";
-    Restart = lib.mkForce "no";
-    TimeoutStopSec = 10;
-    ExecStop = pkgs.writeShellScript "plex-stop" ''
-      ${pkgs.procps}/bin/pkill --signal 15 --pidfile "${pidFile}"
+  # systemd.services.plex.serviceConfig = let
+  #   pidFile = "${config.services.plex.dataDir}/Plex Media Server/plexmediaserver.pid";
+  # in {
+  #   KillSignal = lib.mkForce "SIGKILL";
+  #   Restart = lib.mkForce "no";
+  #   TimeoutStopSec = 10;
+  #   ExecStop = pkgs.writeShellScript "plex-stop" ''
+  #     ${pkgs.procps}/bin/pkill --signal 15 --pidfile "${pidFile}"
 
-      # Wait until plex service has been shutdown
-      # by checking if the PID file is gone
-      while [ -e "${pidFile}" ]; do
-        sleep 0.1
-      done
+  #     # Wait until plex service has been shutdown
+  #     # by checking if the PID file is gone
+  #     while [ -e "${pidFile}" ]; do
+  #       sleep 0.1
+  #     done
 
-      ${pkgs.coreutils}/bin/echo "Plex shutdown successful"
-    '';
-    PIDFile = lib.mkForce "";
-  };
+  #     ${pkgs.coreutils}/bin/echo "Plex shutdown successful"
+  #   '';
+  #   PIDFile = lib.mkForce "";
+  # };
 
   nixpkgs.config.allowUnfree = true;
 
@@ -154,7 +154,10 @@ in
       pulse.enable = true;
     };
     flatpak.enable = true;
-    plex.enable = true;
+    plex = {
+      enable = true;
+      package = unstable.plex; 
+    };
   };
 
   programs = {
@@ -183,13 +186,15 @@ in
     gnome-tweaks gnome-extension-manager
     dconf-editor xdg-utils ptyxis nvd
 
-    brave
-    dropbox
-    qbittorrent
+    brave dropbox
 
     docker-compose nodejs_20 yarn
     openssl_3_3
     cudaPackages.cudatoolkit
+
+    helix nil nixpkgs-fmt
+    vtsls vscode-langservers-extracted
+    
   ]) ++ (with unstable; [
     vscode-fhs
     awscli2 prisma-engines
