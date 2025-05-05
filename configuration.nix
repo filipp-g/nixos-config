@@ -2,19 +2,23 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 let
   unstable = import <nixos-unstable> { config.allowUnfree = true; };
-  
+
   monitorsXmlContent = builtins.readFile /home/fil/.config/monitors.xml;
   monitorsConfig = pkgs.writeText "gdm_monitors.xml" monitorsXmlContent;
 in
 {
-  imports =
-    [
-      ./hardware-configuration.nix
-    ];
+  imports = [
+    ./hardware-configuration.nix
+  ];
 
   boot = {
     loader = {
@@ -26,7 +30,6 @@ in
       "vm.swappiness" = 10;
       "kernel.nmi_watchdog" = 0;
     };
-    initrd.kernelModules = [ "amdgpu" ];
   };
 
   security = {
@@ -47,25 +50,27 @@ in
     "L+ /run/gdm/.config/monitors.xml - - - - ${monitorsConfig}"
   ];
 
-  # systemd.services.plex.serviceConfig = let
-  #   pidFile = "${config.services.plex.dataDir}/Plex Media Server/plexmediaserver.pid";
-  # in {
-  #   KillSignal = lib.mkForce "SIGKILL";
-  #   Restart = lib.mkForce "no";
-  #   TimeoutStopSec = 10;
-  #   ExecStop = pkgs.writeShellScript "plex-stop" ''
-  #     ${pkgs.procps}/bin/pkill --signal 15 --pidfile "${pidFile}"
+  systemd.services.plex.serviceConfig =
+    let
+      pidFile = "${config.services.plex.dataDir}/Plex Media Server/plexmediaserver.pid";
+    in
+    {
+      KillSignal = lib.mkForce "SIGKILL";
+      Restart = lib.mkForce "no";
+      TimeoutStopSec = 10;
+      ExecStop = pkgs.writeShellScript "plex-stop" ''
+        ${pkgs.procps}/bin/pkill --signal 15 --pidfile "${pidFile}"
 
-  #     # Wait until plex service has been shutdown
-  #     # by checking if the PID file is gone
-  #     while [ -e "${pidFile}" ]; do
-  #       sleep 0.1
-  #     done
+        # Wait until plex service has been shutdown
+        # by checking if the PID file is gone
+        while [ -e "${pidFile}" ]; do
+          sleep 0.1
+        done
 
-  #     ${pkgs.coreutils}/bin/echo "Plex shutdown successful"
-  #   '';
-  #   PIDFile = lib.mkForce "";
-  # };
+        ${pkgs.coreutils}/bin/echo "Plex shutdown successful"
+      '';
+      PIDFile = lib.mkForce "";
+    };
 
   nixpkgs.config.allowUnfree = true;
 
@@ -110,7 +115,10 @@ in
   users.users.fil = {
     isNormalUser = true;
     description = "fil";
-    extraGroups = [ "networkmanager" "wheel" ];
+    extraGroups = [
+      "networkmanager"
+      "wheel"
+    ];
   };
 
   hardware = {
@@ -142,7 +150,10 @@ in
     printing.enable = false;
     xserver = {
       enable = true;
-      videoDrivers = [ "amdgpu" "nvidia" ];
+      videoDrivers = [
+        "amdgpu"
+        "nvidia"
+      ];
       displayManager.gdm.enable = true;
       desktopManager.gnome.enable = true;
       excludePackages = with pkgs; [ xterm ];
@@ -156,7 +167,7 @@ in
     flatpak.enable = true;
     plex = {
       enable = true;
-      package = unstable.plex; 
+      package = unstable.plex;
     };
   };
 
@@ -182,40 +193,69 @@ in
     };
   };
 
-  environment.systemPackages = (with pkgs; [
-    gnome-tweaks gnome-extension-manager
-    dconf-editor xdg-utils ptyxis nvd
+  environment.systemPackages =
+    (with pkgs; [
+      dconf-editor
+      gnome-extension-manager
+      gnome-tweaks
+      nvd
+      xdg-utils
+      yaru-theme
 
-    brave dropbox
+      brave
+      mission-center
+      ptyxis
 
-    docker-compose nodejs_20 yarn
-    openssl_3_3
-    cudaPackages.cudatoolkit
+      cudaPackages.cudatoolkit
+      docker-compose
+      nodejs_20
+      openssl_3_3
+      yarn
 
-    helix nil nixpkgs-fmt
-    vtsls vscode-langservers-extracted
-    
-  ]) ++ (with unstable; [
-    vscode-fhs
-    awscli2 prisma-engines
-  ]) ++ (with unstable.gnomeExtensions; [
-    ddterm freon
-  ]);
+      helix
+      nixd
+      nixfmt-rfc-style
+      wl-clipboard
+    ])
+    ++ (with unstable; [
+      vscode-fhs
+      awscli2
+      prisma-engines
+    ])
+    ++ (with unstable.gnomeExtensions; [
+      ddterm
+      freon
+    ]);
 
   fonts.packages = with pkgs; [
-    ubuntu-sans ubuntu-classic
+    ubuntu-sans
+    ubuntu-classic
   ];
 
   xdg.portal = {
     enable = true;
-    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
     xdgOpenUsePortal = true;
   };
 
   environment.gnome.excludePackages = with pkgs; [
-    gnome-calendar gnome-characters gnome-clocks gnome-console gnome-connections
-    gnome-contacts gnome-logs gnome-maps gnome-music gnome-photos gnome-tour
-    gnome-shell-extensions snapshot yelp epiphany geary totem simple-scan
+    epiphany
+    geary
+    gnome-calendar
+    gnome-characters
+    gnome-clocks
+    gnome-connections
+    gnome-console
+    gnome-contacts
+    gnome-logs
+    gnome-maps
+    gnome-music
+    gnome-photos
+    gnome-shell-extensions
+    gnome-tour
+    simple-scan
+    snapshot
+    totem
+    yelp
   ];
 
   # This value determines the NixOS release from which the default
